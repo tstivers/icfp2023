@@ -22,7 +22,9 @@ namespace Contest.Visualizer
         {
             var solver = new SimpleSolver(_problem, int.Parse(this.tbGridSize.Text), int.Parse(this.tbGridSize.Text));
             //var solver = new QuadtreeSolver(_problem, int.Parse(this.tbGridSize.Text), int.Parse(this.tbGridSize.Text), 100);
+            this.Cursor = Cursors.WaitCursor;
             solver.Solve();
+            this.Cursor = Cursors.Default;
             this.problemVisualizer1.Invalidate();
         }
 

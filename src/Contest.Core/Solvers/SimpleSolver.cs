@@ -35,15 +35,37 @@ namespace Contest.Core.Solvers
             // generate x * x matrix for stage
             // calculate score for each cell
             // for each musician
+            CalculateScores();
+
             for (int i = 0; i < Problem.Musicians.Length; i++)
             {
-                CalculateScores();
                 var pos = HighestScoringStagePos(Problem.Musicians[i].Instrument);
                 Problem.Placements[i].X = pos.x;
                 Problem.Placements[i].Y = pos.y;
+                RecalculateValidPlacements();
             }
             // place in highest scoring valid cell
             // recalc score matrix
+        }
+
+        private void RecalculateValidPlacements()
+        {
+            Parallel.For(0, h, y =>
+            {
+                for (int x = 0; x < w; ++x)
+                {
+                    var scores = ScoreMatrix[x, y];
+
+                    double xPos = ((Problem.Stage.Width / w) * x) + Problem.Stage.X;
+                    double yPos = ((Problem.Stage.Height / h) * y) + Problem.Stage.Y;
+
+                    if (!isValidPlacement(xPos, yPos))
+                        for (int m = 0; m < NumInstruments; m++)
+                        {
+                            scores[m] = double.MinValue;
+                        }
+                }
+            });
         }
 
         public void CalculateScores()
