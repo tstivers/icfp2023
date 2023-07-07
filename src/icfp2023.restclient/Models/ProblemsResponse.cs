@@ -1,4 +1,4 @@
-﻿namespace icfp2023.Api.Models
+﻿namespace Contest.Api.Models
 {
     public class ProblemsResponse
     {

@@ -2,6 +2,9 @@
 {
     public class Musician
     {
+        public Musician()
+        { }
+
         public Musician(int instrument)
         {
             Instrument = instrument;

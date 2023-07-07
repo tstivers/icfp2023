@@ -36,6 +36,7 @@
             AutoScaleMode = AutoScaleMode.Font;
             Name = "ProblemVisualizer";
             Paint += ProblemVisualizer_Paint;
+            Resize += ProblemVisualizer_Resize;
             ResumeLayout(false);
         }
 

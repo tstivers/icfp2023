@@ -8,7 +8,10 @@ namespace Contest.Visualizer
 
         public Problem Problem
         {
-            get { return _problem; }
+            get
+            {
+                return _problem;
+            }
             set
             {
                 _problem = value;
@@ -23,16 +26,44 @@ namespace Contest.Visualizer
 
         private void ProblemVisualizer_Paint(object sender, PaintEventArgs e)
         {
-            e.Graphics.Clear(Color.Black);
+            e.Graphics.Clear(Color.Gray);
 
             if (_problem == null)
+            {
                 return;
+            }
 
-            var xscale = this.Width / Problem.Width;
-            var yscale = this.Height / Problem.Height;
+            var b = new Bitmap((int)_problem.Width, (int)_problem.Height);
+            var g = Graphics.FromImage(b);
+
+            g.Clear(Color.Black);
 
             // draw the stage
-            e.Graphics.FillRectangle(Brushes.Orange, (float)(_problem.Stage.X * xscale), (float)(_problem.Stage.Y * yscale), (float)(_problem.Stage.Width * xscale), (float)(_problem.Stage.Height * yscale));
+            g.FillRectangle(Brushes.Orange, (float)(_problem.Stage.X), (float)(_problem.Stage.Y), (float)(_problem.Stage.Width), (float)(_problem.Stage.Height));
+
+            foreach (var a in Problem.Attendees)
+            {
+                g.DrawEllipse(Pens.Red, (float)a.X - 5, (float)a.Y - 5, 10, 10);
+            }
+
+            float rad = 10;
+
+            foreach (var p in Problem.Placements.Where(x => x.X != 0 || x.Y != 0))
+            {
+                g.DrawEllipse(Pens.GreenYellow, (float)p.X - rad / 2, (float)p.Y - rad / 2, rad, rad);
+            }
+
+            float scale = Math.Min((float)this.Width / b.Width, (float)this.Height / b.Height);
+
+            var scaleWidth = (int)(b.Width * scale);
+            var scaleHeight = (int)(b.Height * scale);
+
+            e.Graphics.DrawImage(b, ((int)this.Width - scaleWidth) / 2, ((int)this.Height - scaleHeight) / 2, scaleWidth, scaleHeight);
+        }
+
+        private void ProblemVisualizer_Resize(object sender, EventArgs e)
+        {
+            this.Invalidate();
         }
     }
 }

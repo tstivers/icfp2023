@@ -1,4 +1,4 @@
-﻿namespace icfp2023.restclient.Models
+﻿namespace Contest.Api.Models
 {
     public class StatusResponse
     {

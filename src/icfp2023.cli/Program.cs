@@ -1,7 +1,7 @@
-﻿using Contest.Core.Helpers;
-using icfp2023.Api;
+﻿using Contest.Api;
+using Contest.Core.Helpers;
 
-namespace icfp2023.cli
+namespace Contest.cli
 {
     public class Program
     {

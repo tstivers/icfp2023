@@ -1,11 +1,14 @@
-﻿using Contest.Core.Models;
+﻿using Contest.Core.Helpers;
+using Contest.Core.Models;
+using MoreLinq;
+using NUnit.Framework;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace Contest.Core.Solvers
 {
-    public class SimpleSolver
+    public class QuadtreeSolver
     {
         public readonly Problem Problem;
 
@@ -15,7 +18,9 @@ namespace Contest.Core.Solvers
         public int h;
         public int NumInstruments;
 
-        public SimpleSolver(Problem problem, int width, int height)
+        public AttendeeQuadTreeNode AttendeeQuadTree { get; set; }
+
+        public QuadtreeSolver(Problem problem, int width, int height, int minNodeCount)
         {
             Problem = problem;
             w = width;
@@ -28,6 +33,23 @@ namespace Contest.Core.Solvers
                 {
                     ScoreMatrix[x, y] = new double[NumInstruments];
                 }
+
+            AttendeeQuadTree = new AttendeeQuadTreeNode(0, 0, Problem.Width, Problem.Height);
+
+            foreach (var a in Problem.Attendees)
+                AttendeeQuadTree.MaybeAddAttendee(a);
+
+            Assert.That(AttendeeQuadTree.AttendeeCount(), Is.EqualTo(Problem.Attendees.Length));
+            Assert.That(Problem.Attendees.Length, Is.GreaterThan(minNodeCount));
+
+            while (AttendeeQuadTree.NodeCount() < minNodeCount)
+            {
+                var biggestLeaf = AttendeeQuadTreeNode.GetAllNodesRecursively(AttendeeQuadTree)
+                    .MaxBy(x => x.Attendees.Count).First();
+                biggestLeaf.Split();
+            }
+
+            Assert.That(AttendeeQuadTree.AttendeeCount(), Is.EqualTo(Problem.Attendees.Length)); // don't lose attendees
         }
 
         public void Solve()
@@ -35,9 +57,9 @@ namespace Contest.Core.Solvers
             // generate x * x matrix for stage
             // calculate score for each cell
             // for each musician
+            CalculateScores();
             for (int i = 0; i < Problem.Musicians.Length; i++)
             {
-                CalculateScores();
                 var pos = HighestScoringStagePos(Problem.Musicians[i].Instrument);
                 Problem.Placements[i].X = pos.x;
                 Problem.Placements[i].Y = pos.y;
@@ -98,13 +120,13 @@ namespace Contest.Core.Solvers
                 return false;
 
             foreach (var p in Problem.Placements.Where(x => x.X != 0 || x.Y != 0))
-                if (distance(x, y, p.X, p.Y) < 10)
+                if (GetDistance(x, y, p.X, p.Y) < 10)
                     return false;
 
             return true;
         }
 
-        public double distance(double x1, double y1, double x2, double y2)
+        public double GetDistance(double x1, double y1, double x2, double y2)
         {
             return Math.Sqrt(Math.Pow(x2 - x1, 2) + Math.Pow(y2 - y1, 2));
         }
@@ -117,10 +139,16 @@ namespace Contest.Core.Solvers
 
             double score = 0;
 
-            foreach (var a in Problem.Attendees)
+            //foreach (var a in Problem.Attendees)
+            //{
+            //    var distance = Math.Sqrt(Math.Pow(a.X - x, 2) + Math.Pow(a.Y - y, 2));
+            //    score += 1000000 * a.Tastes[instrument] / Math.Pow(distance, 2);
+            //}
+
+            foreach (var n in AttendeeQuadTreeNode.GetAllNodesRecursively(AttendeeQuadTree).Where(x => x.Attendees.Count() != 0))
             {
-                var distance = Math.Sqrt(Math.Pow(a.X - x, 2) + Math.Pow(a.Y - y, 2));
-                score += 1000000 * a.Tastes[instrument] / Math.Pow(distance, 2);
+                var distance = this.GetDistance(n.Center.x, n.Center.y, x, y);
+                score += 1000000 * n.Tastes[instrument] / Math.Pow(distance, 2);
             }
 
             return score;

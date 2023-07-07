@@ -2,6 +2,10 @@
 {
     public class Stage
     {
+        public Stage()
+        {
+        }
+
         public Stage(double width, double height, double[] pos)
         {
             Width = width;

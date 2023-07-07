@@ -1,6 +1,6 @@
 ﻿namespace Contest.Core.Models
 {
-    public class Placement
+    public struct Placement
     {
         public double X { get; set; }
         public double Y { get; set; }

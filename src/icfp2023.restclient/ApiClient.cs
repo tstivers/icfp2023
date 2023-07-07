@@ -1,11 +1,12 @@
-﻿using icfp2023.Api.Models;
-using icfp2023.restclient.Models;
+﻿using Contest.Api.Models;
 using Newtonsoft.Json;
 using RestSharp;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
-namespace icfp2023.Api
+namespace Contest.Api
 {
     public class ApiClient
     {
@@ -62,6 +63,27 @@ namespace icfp2023.Api
             request.AddParameter("problem_id", id);
 
             var response = await HandleStatusRequest<ProblemResponse>(request);
+
+            return response;
+        }
+
+        public async Task<string> SubmitSolution(int problemId, IEnumerable<(double x, double y)> solution)
+        {
+            var request = new RestRequest("submission", Method.Post);
+            var sub = new SubmissionContents()
+            {
+                placements = solution.Select(x => new PlacementRequest() { x = x.x, y = x.y }).ToArray()
+            };
+
+            var pr = new PlacementsRequest
+            {
+                problem_id = problemId,
+                contents = JsonConvert.SerializeObject(sub)
+            };
+
+            request.AddBody(pr, ContentType.Json);
+
+            var response = await HandleRequest<string>(request);
 
             return response;
         }
