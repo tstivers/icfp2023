@@ -27,7 +27,7 @@ namespace Contest.Visualizer
             this.Cursor = Cursors.Default;
             this.problemVisualizer1.Invalidate();
 
-            this.Text = $"Problem {_problem.Id} [{solver.GetScore():N0}]";
+            this.Text = $"Problem {_problem.Id} [{solver.InitialScore:N0}] [{solver.GetScore():N0}] {{{solver.numRefinements}}}";
         }
 
         private async void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
