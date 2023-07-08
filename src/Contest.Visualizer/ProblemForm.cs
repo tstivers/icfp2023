@@ -46,7 +46,7 @@ namespace Contest.Visualizer
         private async void ProblemForm_Shown(object sender, EventArgs e)
         {
             var numProblems = await _repo.GetNumberOfProblems();
-            for (int i = 1; i < numProblems; i++)
+            for (int i = 1; i <= numProblems; i++)
             {
                 this.comboBox1.Items.Add(i);
             }

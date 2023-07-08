@@ -11,5 +11,7 @@
         }
 
         public int Instrument { get; }
+        public double BestScore { get; set; }
+        public int Id { get; set; }
     }
 }
