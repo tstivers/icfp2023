@@ -286,7 +286,7 @@ namespace Contest.Core.Solvers
                 if (intersects)
                     continue;
 
-                var distance = Math.Sqrt(Math.Pow(a.X - x, 2) + Math.Pow(a.Y - y, 2));
+                var distance = this.distance(a.X, a.Y, x, y);
                 score += 1000000 * a.Tastes[instrument] / Math.Pow(distance, 2);
             }
 
