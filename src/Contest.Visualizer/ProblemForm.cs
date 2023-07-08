@@ -26,6 +26,8 @@ namespace Contest.Visualizer
             solver.Solve();
             this.Cursor = Cursors.Default;
             this.problemVisualizer1.Invalidate();
+
+            this.Text = $"Problem {_problem.Id} [{solver.GetScore():N0}]";
         }
 
         private async void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
@@ -36,6 +38,7 @@ namespace Contest.Visualizer
             this.lblMusiciansCount.Text = $"Musicians: {_problem.Musicians.Length}";
             this.lblInstrumentsCount.Text = $"Instruments: {_problem.Musicians.Select(x => x.Instrument).Distinct().Count()}";
             this.lblAttendeesCount.Text = $"Attendees: {_problem.Attendees.Length}";
+            this.Text = $"Problem {_problem.Id}";
         }
 
         private async void btnSubmit_Click(object sender, EventArgs e)

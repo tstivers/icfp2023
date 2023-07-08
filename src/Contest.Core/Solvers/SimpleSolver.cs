@@ -1,4 +1,5 @@
-﻿using Contest.Core.Models;
+﻿using Contest.Core.Helpers;
+using Contest.Core.Models;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -32,7 +33,7 @@ namespace Contest.Core.Solvers
 
         public void Solve()
         {
-            CalculateScores();
+            PopulateScoreMatrix();
 
             CalculateBestScores();
 
@@ -43,6 +44,8 @@ namespace Contest.Core.Solvers
                 Problem.Placements[m.Id].Y = pos.y;
                 RecalculateValidPlacements();
             }
+
+            CalculateScores();
         }
 
         private void CalculateBestScores()
@@ -84,7 +87,49 @@ namespace Contest.Core.Solvers
             });
         }
 
-        public void CalculateScores()
+        private void CalculateScores()
+        {
+            Parallel.ForEach(Problem.Musicians, m =>
+            {
+                m.Score = 0;
+                m.NumBlocked = 0;
+                var pos = Problem.Placements[m.Id];
+
+                foreach (var a in Problem.Attendees)
+                {
+                    // check for intersection
+
+                    bool intersects = false;
+                    foreach (var p in Problem.Placements)
+                    {
+                        if (p == pos)
+                            continue;
+
+                        if (CircleIntersectChecker.CheckIntersection(p.X, p.Y, 5.0, a.X, a.Y, pos.X, pos.Y))
+                        {
+                            intersects = true;
+                            break;
+                        }
+                    }
+
+                    if (intersects)
+                    {
+                        m.NumBlocked++;
+                        continue;
+                    }
+
+                    var distance = this.distance(a.X, a.Y, pos.X, pos.Y);
+                    m.Score += 1000000 * a.Tastes[m.Instrument] / Math.Pow(distance, 2);
+                }
+            });
+        }
+
+        public double GetScore()
+        {
+            return Problem.Musicians.Sum(m => m.Score);
+        }
+
+        public void PopulateScoreMatrix()
         {
             Parallel.For(0, h, y =>
             {

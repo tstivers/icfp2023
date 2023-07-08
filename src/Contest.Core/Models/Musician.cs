@@ -13,5 +13,8 @@
         public int Instrument { get; }
         public double BestScore { get; set; }
         public int Id { get; set; }
+        public double Score { get; set; }
+
+        public int NumBlocked { get; set; }
     }
 }
