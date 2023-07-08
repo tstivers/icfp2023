@@ -23,12 +23,21 @@ namespace Contest.Core.Solvers
 
         public Notify OnNotify;
 
+        public double[] InvalidScores;
+
         public SimpleSolver(Problem problem, int width, int height)
         {
             Problem = problem;
+
             w = width;
             h = height;
             NumInstruments = Problem.Musicians.Select(x => x.Instrument).Distinct().Count();
+
+            InvalidScores = new double[NumInstruments];
+            for (int i = 0; i < NumInstruments; i++)
+            {
+                InvalidScores[i] = double.MinValue;
+            }
 
             ScoreMatrix = new double[w, h][];
             for (int x = 0; x < w; x++)
@@ -209,10 +218,7 @@ namespace Contest.Core.Solvers
 
                     var pos = MatrixPosToPos(x, y);
 
-                    for (int m = 0; m < NumInstruments; m++)
-                    {
-                        scores[m] = ScorePlacement(m, pos.x, pos.y, checkIntersections);
-                    }
+                    ScoreMatrix[x, y] = ScorePlacement(pos.x, pos.y, checkIntersections);
                 }
             });
         }
@@ -256,24 +262,23 @@ namespace Contest.Core.Solvers
             return Math.Sqrt(Math.Pow(x2 - x1, 2) + Math.Pow(y2 - y1, 2));
         }
 
-        public double ScorePlacement(int instrument, double x, double y, bool checkIntersections)
+        public double[] ScorePlacement(double x, double y, bool checkIntersections)
         {
             // check if this is a valid placement
             if (!isValidPlacement(x, y))
-                return double.MinValue;
+            {
+                return InvalidScores;
+            }
 
-            double score = 0;
+            var scores = new double[NumInstruments];
 
             foreach (var a in Problem.Attendees)
             {
-                if (a.Tastes[instrument] == 0)
-                    continue;
-
                 bool intersects = false;
 
                 if (checkIntersections)
                 {
-                    foreach (var p in Problem.Placements)
+                    foreach (var p in Problem.Placements.Where(x => x.X != 0 || x.Y != 0))
                     {
                         if (CircleIntersectChecker.CheckIntersection(p.X, p.Y, 5.0, a.X, a.Y, x, y))
                         {
@@ -287,10 +292,14 @@ namespace Contest.Core.Solvers
                     continue;
 
                 var distance = this.distance(a.X, a.Y, x, y);
-                score += 1000000 * a.Tastes[instrument] / Math.Pow(distance, 2);
+
+                for (int i = 0; i < NumInstruments; i++)
+                {
+                    scores[i] += 1000000 * a.Tastes[i] / Math.Pow(distance, 2);
+                }
             }
 
-            return score;
+            return scores;
         }
     }
 }
