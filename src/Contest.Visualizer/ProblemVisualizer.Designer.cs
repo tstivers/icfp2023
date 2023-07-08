@@ -34,6 +34,7 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
+            DoubleBuffered = true;
             Name = "ProblemVisualizer";
             Paint += ProblemVisualizer_Paint;
             Resize += ProblemVisualizer_Resize;

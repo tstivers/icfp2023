@@ -17,5 +17,7 @@
         public double PotentialScore { get; set; }
 
         public int NumBlocked { get; set; }
+
+        public (double x, double y) BestScoringPos { get; set; }
     }
 }

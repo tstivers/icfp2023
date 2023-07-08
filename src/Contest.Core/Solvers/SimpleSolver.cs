@@ -17,11 +17,17 @@ namespace Contest.Core.Solvers
         public int NumInstruments;
         public int numRefinements { get; set; }
         public double InitialScore { get; set; }
+        public double LastScore { get; set; }
+        public double CurrentScore { get; set; }
         public int NumMusiciansProcessed { get; set; }
 
         public delegate void Notify(Object sender);
 
+        public delegate void LogMessage(Object sender, string message);
+
         public Notify OnNotify;
+
+        public LogMessage OnLogMessage;
 
         public double[] InvalidScores;
 
@@ -67,8 +73,10 @@ namespace Contest.Core.Solvers
             NumMusiciansProcessed = 0;
 
             PopulateScoreMatrix(false);
+            OnNotify?.Invoke(this);
 
             CalculateBestScores();
+            OnNotify?.Invoke(this);
 
             foreach (var m in Problem.Musicians.OrderByDescending(x => x.BestScore))
             {
@@ -78,53 +86,43 @@ namespace Contest.Core.Solvers
                 Problem.Placements[m.Id].Y = pos.y;
                 RecalculateValidPlacements();
                 NumMusiciansProcessed++;
-                OnNotify?.Invoke(this);
             }
-
-            double scorediff;
-            double score;
+            OnNotify?.Invoke(this);
 
             CalculateScores();
             InitialScore = GetScore();
 
+            OnNotify?.Invoke(this);
             do
             {
                 numRefinements++;
-                CalculateScores();
-                score = GetScore();
-                var baddies = Problem.Musicians
-                    .Where(x => x.PotentialScore - x.ActualScore > 0)
-                    .OrderByDescending(x => x.PotentialScore - x.ActualScore)
-                    .ToList();
-
-                if (!baddies.Any())
-                    break;
-
-                var bad = baddies.First();
-                var tempX = Problem.Placements[bad.Id].X;
-                var tempY = Problem.Placements[bad.Id].Y;
-                Problem.Placements[bad.Id].X = 0;
-                Problem.Placements[bad.Id].Y = 0;
 
                 PopulateScoreMatrix(true);
-                var newpos = HighestScoringStagePos(bad.Instrument);
-                if (newpos.score > bad.ActualScore)
+
+                foreach (var m in Problem.Musicians)
                 {
-                    var oldscore = GetScore();
-                    Problem.Placements[bad.Id].X = newpos.x;
-                    Problem.Placements[bad.Id].Y = newpos.y;
-                    CalculateScores();
-                    scorediff = GetScore() - oldscore;
+                    var hs = HighestScoringStagePos(m.Instrument);
+                    m.BestScore = hs.score;
+                    m.BestScoringPos = (hs.x, hs.y);
                 }
-                else
-                {
-                    Problem.Placements[bad.Id].X = tempX;
-                    Problem.Placements[bad.Id].Y = tempY;
-                    scorediff = 0;
-                }
+
                 OnNotify?.Invoke(this);
-            }
-            while (scorediff > Math.Abs(score) * 0.01); // 1%
+
+                var mip = Problem.Musicians.Where(x => x.BestScore > x.ActualScore)
+                    .OrderByDescending(x => x.BestScore - x.ActualScore).FirstOrDefault();
+
+                if (mip == null)
+                    break;
+
+                Problem.Placements[mip.Id].X = mip.BestScoringPos.x;
+                Problem.Placements[mip.Id].Y = mip.BestScoringPos.y;
+                CalculateScores();
+                LastScore = CurrentScore;
+                CurrentScore = GetScore();
+
+                OnNotify?.Invoke(this);
+                //} while (scorediff > Math.Abs(InitialScore) * 0.01); // 1%
+            } while (true);
         }
 
         private void CalculateBestScores()
