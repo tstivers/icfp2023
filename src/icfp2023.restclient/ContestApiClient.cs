@@ -1,4 +1,5 @@
-﻿using Contest.Api.Models;
+﻿using Api.Models;
+using Contest.Api.Models;
 using Newtonsoft.Json;
 using RestSharp;
 using System;
@@ -8,12 +9,12 @@ using System.Threading.Tasks;
 
 namespace Contest.Api
 {
-    public class ApiClient
+    public class ContestApiClient
     {
         private readonly RestClient _client;
         private readonly string _token;
 
-        public ApiClient(string endpoint, string token)
+        public ContestApiClient(string endpoint, string token)
         {
             _token = token;
 
@@ -65,6 +66,14 @@ namespace Contest.Api
             var response = await HandleStatusRequest<ProblemResponse>(request);
 
             return response;
+        }
+
+        public async Task<double> GetProblemScore(int id)
+        {
+            var request = new RestRequest("userboard");
+
+            var response = await HandleRequest<UserBoardBleh>(request);
+            return response.Success.problems[id - 1];
         }
 
         public async Task<string> SubmitSolution(int problemId, IEnumerable<(double x, double y)> solution)

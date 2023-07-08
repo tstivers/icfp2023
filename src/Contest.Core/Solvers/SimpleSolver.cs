@@ -17,6 +17,11 @@ namespace Contest.Core.Solvers
         public int NumInstruments;
         public int numRefinements { get; set; }
         public double InitialScore { get; set; }
+        public int NumMusiciansProcessed { get; set; }
+
+        public delegate void Notify(Object sender);
+
+        public Notify OnNotify;
 
         public SimpleSolver(Problem problem, int width, int height)
         {
@@ -33,9 +38,24 @@ namespace Contest.Core.Solvers
                 }
         }
 
+        public (double x, double y) MatrixPosToPos(int x, int y)
+        {
+            var st = Problem.Stage.Y + 10;
+            var sb = Problem.Stage.Y + Problem.Stage.Height - 10;
+
+            var sl = Problem.Stage.X + 10;
+            var sr = Problem.Stage.X + Problem.Stage.Width - 10;
+
+            var hs = (sb - st) / (h - 1);
+            var ws = (sr - sl) / (w - 1);
+
+            return ((x * ws) + sl, (y * hs) + st);
+        }
+
         public void Solve()
         {
             numRefinements = 0;
+            NumMusiciansProcessed = 0;
 
             PopulateScoreMatrix(false);
 
@@ -48,6 +68,8 @@ namespace Contest.Core.Solvers
                 Problem.Placements[m.Id].X = pos.x;
                 Problem.Placements[m.Id].Y = pos.y;
                 RecalculateValidPlacements();
+                NumMusiciansProcessed++;
+                OnNotify?.Invoke(this);
             }
 
             double scorediff;
@@ -61,10 +83,21 @@ namespace Contest.Core.Solvers
                 numRefinements++;
                 CalculateScores();
                 score = GetScore();
-                var baddies = Problem.Musicians.OrderByDescending(x => x.PotentialScore - x.ActualScore).ToList();
-                PopulateScoreMatrix(true);
+                var baddies = Problem.Musicians
+                    .Where(x => x.PotentialScore - x.ActualScore > 0)
+                    .OrderByDescending(x => x.PotentialScore - x.ActualScore)
+                    .ToList();
+
+                if (!baddies.Any())
+                    break;
 
                 var bad = baddies.First();
+                var tempX = Problem.Placements[bad.Id].X;
+                var tempY = Problem.Placements[bad.Id].Y;
+                Problem.Placements[bad.Id].X = 0;
+                Problem.Placements[bad.Id].Y = 0;
+
+                PopulateScoreMatrix(true);
                 var newpos = HighestScoringStagePos(bad.Instrument);
                 if (newpos.score > bad.ActualScore)
                 {
@@ -76,9 +109,13 @@ namespace Contest.Core.Solvers
                 }
                 else
                 {
+                    Problem.Placements[bad.Id].X = tempX;
+                    Problem.Placements[bad.Id].Y = tempY;
                     scorediff = 0;
                 }
-            } while (scorediff > Math.Abs(score) * 0.01); // 1%
+                OnNotify?.Invoke(this);
+            }
+            while (scorediff > Math.Abs(score) * 0.01); // 1%
         }
 
         private void CalculateBestScores()
@@ -107,11 +144,9 @@ namespace Contest.Core.Solvers
                 for (int x = 0; x < w; ++x)
                 {
                     var scores = ScoreMatrix[x, y];
+                    var pos = MatrixPosToPos(x, y);
 
-                    double xPos = ((Problem.Stage.Width / w) * x) + Problem.Stage.X;
-                    double yPos = ((Problem.Stage.Height / h) * y) + Problem.Stage.Y;
-
-                    if (!isValidPlacement(xPos, yPos))
+                    if (!isValidPlacement(pos.x, pos.y))
                         for (int m = 0; m < NumInstruments; m++)
                         {
                             scores[m] = double.MinValue;
@@ -130,8 +165,10 @@ namespace Contest.Core.Solvers
 
                 foreach (var a in Problem.Attendees)
                 {
-                    // check for intersection
+                    if (a.Tastes[m.Instrument] == 0)
+                        continue;
 
+                    // check for intersection
                     bool intersects = false;
                     foreach (var p in Problem.Placements)
                     {
@@ -170,12 +207,11 @@ namespace Contest.Core.Solvers
                 {
                     var scores = ScoreMatrix[x, y];
 
-                    double xPos = ((Problem.Stage.Width / w) * x) + Problem.Stage.X;
-                    double yPos = ((Problem.Stage.Height / h) * y) + Problem.Stage.Y;
+                    var pos = MatrixPosToPos(x, y);
 
                     for (int m = 0; m < NumInstruments; m++)
                     {
-                        scores[m] = ScorePlacement(m, xPos, yPos, checkIntersections);
+                        scores[m] = ScorePlacement(m, pos.x, pos.y, checkIntersections);
                     }
                 }
             });
@@ -201,18 +237,13 @@ namespace Contest.Core.Solvers
                 throw new Exception("couldn't find a valid spot");
             }
 
-            double xPos = ((Problem.Stage.Width / w) * pos.x) + Problem.Stage.X;
-            double yPos = ((Problem.Stage.Height / h) * pos.y) + Problem.Stage.Y;
+            var tpos = MatrixPosToPos(pos.x, pos.y);
 
-            return (xPos, yPos, highest);
+            return (tpos.x, tpos.y, highest);
         }
 
         public bool isValidPlacement(double x, double y)
         {
-            if (x - 10 < Problem.Stage.X || x + 10 > Problem.Stage.X + Problem.Stage.Width ||
-                y - 10 < Problem.Stage.Y || y + 10 > Problem.Stage.Y + Problem.Stage.Height)
-                return false;
-
             foreach (var p in Problem.Placements.Where(x => x.X != 0 || x.Y != 0))
                 if (distance(x, y, p.X, p.Y) < 10)
                     return false;
@@ -235,6 +266,9 @@ namespace Contest.Core.Solvers
 
             foreach (var a in Problem.Attendees)
             {
+                if (a.Tastes[instrument] == 0)
+                    continue;
+
                 bool intersects = false;
 
                 if (checkIntersections)

@@ -50,7 +50,8 @@ namespace Contest.Visualizer
 
             foreach (var p in Problem.Placements.Where(x => x.X != 0 || x.Y != 0))
             {
-                g.DrawEllipse(Pens.GreenYellow, (float)p.X - rad / 2, (float)p.Y - rad / 2, rad, rad);
+                g.DrawEllipse(Pens.Green, (float)p.X - rad, (float)p.Y - rad, rad * 2, rad * 2);
+                g.FillEllipse(Brushes.Green, (float)p.X - rad / 2, (float)p.Y - rad / 2, rad, rad);
             }
 
             float scale = Math.Min((float)this.Width / b.Width, (float)this.Height / b.Height);

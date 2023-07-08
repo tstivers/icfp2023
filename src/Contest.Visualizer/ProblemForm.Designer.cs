@@ -40,6 +40,9 @@
             tbGridSize = new TextBox();
             label1 = new Label();
             comboBox1 = new ComboBox();
+            statusStrip1 = new StatusStrip();
+            lblMusicianCount = new ToolStripStatusLabel();
+            lblIterations = new ToolStripStatusLabel();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
             splitContainer1.Panel2.SuspendLayout();
@@ -48,6 +51,7 @@
             splitContainer2.Panel1.SuspendLayout();
             splitContainer2.Panel2.SuspendLayout();
             splitContainer2.SuspendLayout();
+            statusStrip1.SuspendLayout();
             SuspendLayout();
             // 
             // splitContainer1
@@ -85,6 +89,7 @@
             // 
             // splitContainer2.Panel1
             // 
+            splitContainer2.Panel1.Controls.Add(statusStrip1);
             splitContainer2.Panel1.Controls.Add(lblAttendeesCount);
             splitContainer2.Panel1.Controls.Add(lblInstrumentsCount);
             splitContainer2.Panel1.Controls.Add(lblMusiciansCount);
@@ -183,6 +188,27 @@
             comboBox1.TabIndex = 0;
             comboBox1.SelectedIndexChanged += comboBox1_SelectedIndexChanged;
             // 
+            // statusStrip1
+            // 
+            statusStrip1.Items.AddRange(new ToolStripItem[] { lblMusicianCount, lblIterations });
+            statusStrip1.Location = new Point(0, 158);
+            statusStrip1.Name = "statusStrip1";
+            statusStrip1.Size = new Size(461, 22);
+            statusStrip1.TabIndex = 3;
+            statusStrip1.Text = "statusStrip1";
+            // 
+            // lblMusicianCount
+            // 
+            lblMusicianCount.Name = "lblMusicianCount";
+            lblMusicianCount.Size = new Size(118, 17);
+            lblMusicianCount.Text = "toolStripStatusLabel1";
+            // 
+            // lblIterations
+            // 
+            lblIterations.Name = "lblIterations";
+            lblIterations.Size = new Size(118, 17);
+            lblIterations.Text = "toolStripStatusLabel1";
+            // 
             // ProblemForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -202,6 +228,8 @@
             splitContainer2.Panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer2).EndInit();
             splitContainer2.ResumeLayout(false);
+            statusStrip1.ResumeLayout(false);
+            statusStrip1.PerformLayout();
             ResumeLayout(false);
         }
 
@@ -219,5 +247,8 @@
         private Label lblInstrumentsCount;
         private Label lblMusiciansCount;
         private Button btnSubmit;
+        private StatusStrip statusStrip1;
+        private ToolStripStatusLabel lblMusicianCount;
+        private ToolStripStatusLabel lblIterations;
     }
 }

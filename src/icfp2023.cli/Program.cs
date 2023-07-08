@@ -7,7 +7,7 @@ namespace Contest.cli
     {
         private static async Task Main(string[] args)
         {
-            var client = new ApiClient("https://api.icfpcontest.com", "***REMOVED***");
+            var client = new ContestApiClient("https://api.icfpcontest.com", "***REMOVED***");
             var repo = new ProblemRepository(client);
 
             //Console.WriteLine(await client.GetProblems());
